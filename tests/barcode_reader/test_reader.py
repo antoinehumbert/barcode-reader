@@ -12,6 +12,7 @@ class TestReader:
     DEBUG = False
     # Some results depend on the running platform. May some some rounding difference !
     WIN = sys.platform == "win32"
+    DARWIN = sys.platform == "darwin"
 
     def test_zbar_read_utf8(self, resources):
         with Reader(resources / "qrcode.png") as reader:
@@ -82,15 +83,17 @@ class TestReader:
         with Reader(multi_qr_image) as reader:
             barcodes = reader.zbar_read()
         expected_barcodes_coordinates = [
-            [(1648, 1065), (1492, 1221), (1334 if self.WIN else 1333, 1064), (1492, 909)],
+            [(1648, 1065), (1492, 1221),
+             (1334, 1064) if self.WIN else (1334, 1065) if self.DARWIN else (1333, 1064), (1492, 909)],
             [(1333, 213), (1490, 56), (1647, 213), (1490, 369)],
-            [(1491, 1333), (1647, 1490), (1490 if self.WIN else 1491, 1647), (1335 if self.WIN else 1334, 1490)],
+            [(1491, 1333), (1647, 1490),
+             (1490, 1647) if self.WIN else (1491, 1647), (1335 if self.WIN else 1334, 1490)],
             [(1491, 796), (1334, 640), (1491, 482), (1647, 640)],
             [(1875, 1339), (2067, 1449), (1958, 1642), (1765, 1530)],
             [(1106, 1339), (1216, 1530), (1024, 1643), (915, 1449)],
             [(2068, 1024), (1958, 1216), (1765, 1105), (1877, 914)],
             [(1217, 1105), (1026, 1216), (913, 1024), (1106, 914)],
-            [(1957, 791), (1766, 680), (1877, 487), (2067, 600)],
+            [(1957, 791), (1766, 680), (1877 if self.WIN else 1876, 487), (2067, 600)],
             [(1024, 790), (914, 599), (1105, 488), (1216, 680)],
             [(913, 172), (1105, 61), (1216, 254), (1023, 362)],
             [(1764, 254), (1875, 63), (2068, 172), (1956, 365)],
