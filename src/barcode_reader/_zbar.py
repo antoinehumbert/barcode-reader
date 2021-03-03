@@ -35,16 +35,17 @@ def _decode_zbar_data(data):
     :rtype: str
     """
     data_str = data.decode("utf-8")
-    print("foo", data, data_str)
     # For unknown reason, when a QR-Code is encoded in iso-8859-1 with 2 and only 2 non-ascii characters, zbar decode it
-    # using sjis encoding instead of iso-8859-1. So we try here to correct this.
+    # using sjis or big5 encoding instead of iso-8859-1. So we try here to correct this.
     try:
-        data = data_str.encode("sjis")
+        try:
+            data = data_str.encode("sjis")
+        except UnicodeEncodeError:
+            data = data_str.encode("big5")
     except UnicodeEncodeError:
-        pass  # It was not decoded using sjis encoding, so this is ok
+        pass  # It was not decoded using sjis nor big5 encoding, so this is ok
     else:
         iso_8859_1 = data.decode("iso-8859-1")
-        print("bar", data, iso_8859_1)
         # If string contains 2 and only 2 non-ascii characters, it was probably iso-8859-1 encoded and not sjis
         if len(iso_8859_1.encode("ascii", errors="ignore")) == len(data) - 2:
             data_str = iso_8859_1
