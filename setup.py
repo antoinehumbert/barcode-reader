@@ -2,11 +2,11 @@ from setuptools import setup, find_packages
 
 
 requirements = [
-
+     "pillow~=8.1", "pyzbar-x~=0.2", "pylibdmtx~=0.1",
 ]
 
 tests_requirements = [
-    "pytest", "pytest-cov"
+    "pytest", "pytest-cov", "imforge",
 ]
 
 lint_requirements = [

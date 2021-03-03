@@ -12,11 +12,11 @@
 #
 import os
 import shutil
-import sys
 
 # sys.path.insert(0, os.path.abspath('.'))
 import sphinx.ext.apidoc
 from pkg_resources import get_distribution
+from setuptools import find_packages
 
 # -- Project information -----------------------------------------------------
 
@@ -43,10 +43,12 @@ extensions = [
 def setup(app):
     source_dir = os.path.dirname(__file__)
     api_dir = os.path.join(source_dir, 'api')
-    src_package_dir = os.path.join(source_dir, '..', '..', 'src', project)
     shutil.rmtree(api_dir, ignore_errors=True)
-    sys.path.append(os.path.normpath(os.path.join(source_dir, '..', '..')))
-    sphinx.ext.apidoc.main(['--implicit-namespaces', '-f', '-e', '-o', api_dir, src_package_dir])
+    projects_sources_dir = get_distribution(project).location
+    for package_name in find_packages(projects_sources_dir):
+        sphinx.ext.apidoc.main(
+            ['--implicit-namespaces', '-f', '-e', '-o', api_dir, os.path.join(projects_sources_dir, package_name)]
+        )
 
 
 # Add any paths that contain templates here, relative to this directory.
