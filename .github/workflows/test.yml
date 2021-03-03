@@ -24,7 +24,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install libs
-      run: sudo apt-get install libzbar0
+      run: sudo apt-get install libzbar0 libdmtx0a
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -54,7 +54,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install libs
-      run: brew install zbar
+      run: brew install zbar libdmtx
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
