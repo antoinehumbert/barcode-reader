@@ -44,7 +44,7 @@ def setup(app):
     source_dir = os.path.dirname(__file__)
     api_dir = os.path.join(source_dir, 'api')
     shutil.rmtree(api_dir, ignore_errors=True)
-    projects_sources_dir = get_distribution(project).location
+    projects_sources_dir = os.path.normpath(os.path.join(source_dir, '..', '..', 'src'))
     for package_name in find_packages(projects_sources_dir):
         sphinx.ext.apidoc.main(
             ['--implicit-namespaces', '-f', '-e', '-o', api_dir, os.path.join(projects_sources_dir, package_name)]
