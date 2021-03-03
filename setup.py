@@ -21,7 +21,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name='{{project_slug}}',
+    name='barcode-reader',
     use_scm_version={"version_scheme": "guess-next-dev", "local_scheme": "no-local-version"},
     packages=find_packages("src"),
     package_dir={'': 'src'},
@@ -29,8 +29,8 @@ setup(
     license='Apache License 2.0',
     author='Antoine HUMBERT',
     author_email='antoine.humbert.dev@gmail.com',
-    keywords=[],
-    description='{{project short description}}',
+    keywords=["Barcode", "QRCode", "Datamatrix"],
+    description='A library for reading a variety of barcode types',
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
