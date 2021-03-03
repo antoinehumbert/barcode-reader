@@ -1,3 +1,4 @@
+import sys
 from PIL import Image, ImageDraw
 
 from barcode_reader.reader import Reader, Barcode
@@ -9,6 +10,8 @@ from barcode_reader import _dmtx
 class TestReader:
 
     DEBUG = False
+    # Some results depend on the running platform. May some some rounding difference !
+    WIN = sys.platform == "win32"
 
     def test_zbar_read_utf8(self, resources):
         with Reader(resources / "qrcode.png") as reader:
@@ -79,7 +82,7 @@ class TestReader:
         with Reader(multi_qr_image) as reader:
             barcodes = reader.zbar_read()
         expected_barcodes_coordinates = [
-            [(1648, 1065), (1492, 1221), (1334, 1064), (1492, 909)],
+            [(1648, 1065), (1492, 1221), (1334 if self.WIN else 1333, 1064), (1492, 909)],
             [(1333, 213), (1490, 56), (1647, 213), (1490, 369)],
             [(1491, 1333), (1647, 1490), (1490, 1647), (1335, 1490)],
             [(1491, 796), (1334, 640), (1491, 482), (1647, 640)],
@@ -187,7 +190,7 @@ class TestReader:
             [(449, 110), (700, 43), (768, 295), (517, 362)],
             [(836, 155), (1062, 25), (1192, 250), (967, 380)],
             [(516, 768), (449, 517), (701, 449), (768, 700)],
-            [(1237, 203), (1421, 18), (1605, 203), (1421, 387)],
+            [(1237, 203), (1421, 18 if self.WIN else 19), (1605, 203), (1421, 387)],
             [(1649, 250), (1779, 25), (2004, 155), (1874, 380)],
             [(1193, 1062), (967, 1192), (837, 967), (1062, 837)],
             [(1605, 1015), (1420, 1199), (1237, 1015), (1421, 831)],
