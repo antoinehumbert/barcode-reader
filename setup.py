@@ -25,7 +25,7 @@ setup(
     use_scm_version={"version_scheme": "guess-next-dev", "local_scheme": "no-local-version"},
     packages=find_packages("src"),
     package_dir={'': 'src'},
-    url='https://github.com/antoinehumbert/{{project_slug}}',
+    url='https://github.com/antoinehumbert/barcode-reader',
     license='Apache License 2.0',
     author='Antoine HUMBERT',
     author_email='antoine.humbert.dev@gmail.com',
