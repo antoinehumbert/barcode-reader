@@ -3,7 +3,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from barcode_reader import _zbar, _dmtx
+from barcode_reader import _zbar, _dmtx, _zxing
 
 
 class Reader:
@@ -54,6 +54,14 @@ class Reader:
         barcodes = [
             Barcode(Barcode.Type.DATAMATRIX, [(p.x, p.y) for p in barcode.polygon], barcode.data.decode("utf-8"))
             for barcode in dmtx_result
+        ]
+        return barcodes
+
+    def zxing_read(self):
+        zxing_result = _zxing.decode(self._image_path)
+        barcodes = [
+            Barcode(Barcode.Type(barcode.type.replace("_", "")), [(p.x, p.y) for p in barcode.polygon], barcode.data)
+            for barcode in zxing_result
         ]
         return barcodes
 

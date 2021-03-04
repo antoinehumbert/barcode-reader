@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 requirements = [
-     "pillow~=8.1", "pyzbar-x~=0.2", "pylibdmtx~=0.1",
+     "pillow~=8.1", "pyzbar-x~=0.2", "pylibdmtx~=0.1", "jpype1=1.2",
 ]
 
 tests_requirements = [
