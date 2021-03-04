@@ -4,7 +4,6 @@ from concurrent.futures import ProcessPoolExecutor
 # noinspection PyPackageRequirements
 import jpype
 import numpy as np
-from PIL import Image
 from pkg_resources import resource_filename
 
 Point = namedtuple("Point", ["x", "y"])
@@ -30,12 +29,12 @@ _executors = ProcessPoolExecutor(initializer=_start_zxing_jvm)
 
 
 # noinspection PyPep8Naming
-def _decode(image_path):
+def _decode(image):
     """
-    Decode barcodes of image at given path. This function is intended for execution in child process. The Zxing JVM must
+    Decode barcodes of given image. This function is intended for execution in child process. The Zxing JVM must
     have been started with the _start_zxing_jvm function before calling this function.
 
-    :param pathlib.Path image_path: path to the image to decode
+    :param PIL.Image.Image image: the image to decode
     :return: the list of decoding results
     :rtype: list[barcode_reader._zxing.Decoded]
     """
@@ -58,7 +57,7 @@ def _decode(image_path):
     PDF417Reader = jpype.JClass("com.google.zxing.pdf417.PDF417Reader")
     NotFoundException = jpype.JClass("com.google.zxing.NotFoundException")
 
-    im = np.array(Image.open(image_path).convert("L"))
+    im = np.array(image.convert("L"))
     height, width = im.shape
     image = BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)
     image.setData(
@@ -132,12 +131,12 @@ def _decode(image_path):
     return decoded_results
 
 
-def decode(image_path):
+def decode(image):
     """
-    Decode barcodes of image at given path
+    Decode barcodes of given image
 
-    :param pathlib.Path image_path: path to the image to decode
+    :param PIL.Image.Image image: the image to decode
     :return: list of found barcodes
     :rtype: list[barcode_reader._zxing.Decoded]
     """
-    return _executors.submit(_decode, image_path).result()
+    return _executors.submit(_decode, image).result()
