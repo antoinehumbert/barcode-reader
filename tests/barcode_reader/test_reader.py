@@ -95,9 +95,10 @@ class TestReader:
              (1024, 1642) if self.DARWIN else (1024, 1643), (915, 1449)],
             [(2068, 1024), (1958, 1216), (1766, 1105) if self.DARWIN else (1765, 1105), (1877, 914)],
             [(1217, 1105), (1026, 1216), (912, 1024) if self.DARWIN else (913, 1024), (1106, 914)],
-            [(1957, 791), (1766, 680), (1877, 487) if self.WIN else (1876, 486), (2067, 600)],
-            [(1024, 790), (914, 599), (1105, 488), (1216, 680)],
-            [(913, 172), (1105, 61), (1216, 254), (1023, 362)],
+            [(1957, 791), (1766, 680), (1877, 487) if self.WIN else (1876, 487) if self.DARWIN else (1876, 486),
+             (2067, 600)],
+            [(1024, 790), (914, 599), (1105, 487) if self.DARWIN else (1105, 488), (1216, 680)],
+            [(913, 172), (1105, 61), (1217, 254) if self.DARWIN else (1216, 254), (1023, 362)],
             [(1764, 254), (1875, 63), (2068, 172), (1956, 365)],
             [(717, 1354), (775, 1568), (561, 1625), (504, 1412)],
             [(2478, 986), (2422, 1199), (2207, 1143), (2265, 929)],
@@ -119,7 +120,6 @@ class TestReader:
                 for barcode in barcodes:
                     draw.line(barcode.coordinates, fill=(255, 0, 0), width=8, joint="curve")
                 image.show()
-        print([b.coordinates for b in barcodes])
         for barcode, expected_coordinates in zip(barcodes, expected_barcodes_coordinates):
             assert barcode.type == Barcode.Type.QRCODE
             assert barcode.data == str(barcode) == "Sample € QR-Code"
