@@ -1,10 +1,11 @@
 import sys
-from PIL import Image, ImageDraw
 
-from barcode_reader.reader import Reader, Barcode
+from PIL import Image, ImageDraw
 from imforge.crop import crop
+
 # noinspection PyProtectedMember
 from barcode_reader import _dmtx
+from barcode_reader.reader import Reader, Barcode
 
 
 class TestReader:
