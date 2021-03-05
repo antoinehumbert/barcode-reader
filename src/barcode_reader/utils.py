@@ -45,6 +45,7 @@ def merge_contours(contours, dist):
     def can_merge(cnt1, cnt2):
         """
         Return whether or not the 2 given contours can be merged if there are close to each other
+
         :param list[numpy.ndarray] cnt1: first contour to compare
         :param list[numpy.ndarray] cnt2: second contour to compare
         :return: whether or not the two contours can be merged
