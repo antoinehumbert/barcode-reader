@@ -4,24 +4,24 @@ from collections import defaultdict
 # noinspection PyPackageRequirements
 import cv2
 import numpy as np
+from PIL import Image
 
 
-def get_groups_of_contours(image):
+def get_groups_of_contours(image, fast=True):
     """
     Return contours of black regions grouped by level (in case of nested contours)
 
-    :param PIL.Image.Image image: the image in which looking for contours
+    :param numpy.ndarray image: the (opencv) gray image in which to look for contours
+    :param bool fast: if ``True``, make the detection faster by blurring image before detection. This will make the
+      contours coordinates less accurate (a little larger than real contours). If ``False``, contours coordinates
+      are more accurate.
     :return: the different groups of contours
     :rtype: list[list[numpy.ndarray]]
     """
-    # We apply gaussian blur to reduce details and get less contours to compute
-    # cv_im = cv2.GaussianBlur(np.array(image.convert("L")), (15, 15), cv2.BORDER_DEFAULT)
-    # im = image.convert("L")
-    # im.frombytes(cv_im)
-    # im.show()
-    _, bin_image = cv2.threshold(
-        cv2.GaussianBlur(np.array(image.convert("L")), (15, 15), cv2.BORDER_DEFAULT), 191, 255, cv2.THRESH_BINARY
-    )
+    if fast:
+        # We apply gaussian blur to reduce details and get less contours to compute
+        image = cv2.GaussianBlur(image, (15, 15), cv2.BORDER_DEFAULT)
+    _, bin_image = cv2.threshold(image, 191, 255, cv2.THRESH_BINARY)
     contours, hierarchy = cv2.findContours(bin_image, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
     # group contours by parents
     groups = defaultdict(list)
@@ -71,13 +71,56 @@ def merge_contours(contours, dist):
     return merged_contours
 
 
-def detect_barcodes(image, quiet_dist=10, min_area=12000):
+def detect_barcodes_pil(image, quiet_dist=10, min_area=12000, fast=True):
     """
     Detect areas on given image which may contain a barcode.
 
     :param PIL.Image.Image image: the image to analyze
     :param int quiet_dist: the quiet distance in pixels (i.e. blank zone around barcodes)
     :param int min_area: the min area in pixels x pixels a barcode must have
+    :param bool fast: if ``True``, make the detection faster. This will make the contours coordinates less accurate
+      (a little larger than real contours). If ``False``, contours coordinates are more accurate.
+    :return: a list of (opencv) rectangles for each area detected. Each rectangle is defined by a tuple containing:
+      * a tuple with the coordinates of the rectangle's center
+      * a tuple with the width anf height of the rectangle
+      * the angle of the rectangle
+    :rtype: list[tuple[tuple[int, int], tuple[int, int], float]]
+    """
+    if image.mode != "L":
+        image = image.convert("L")
+    return detect_barcodes_cv2_gray(np.array(image), quiet_dist=quiet_dist, min_area=min_area, fast=fast)
+
+
+def detect_barcodes_cv2(image, quiet_dist=10, min_area=12000, fast=True):
+    """
+    Detect areas on given image which may contain a barcode.
+
+    :param numpy.ndarray image: the (opencv) gray or BGR image to analyze
+    :param int quiet_dist: the quiet distance in pixels (i.e. blank zone around barcodes)
+    :param int min_area: the min area in pixels x pixels a barcode must have
+    :param bool fast: if ``True``, make the detection faster. This will make the contours coordinates less accurate
+      (a little larger than real contours). If ``False``, contours coordinates are more accurate.
+    :return: a list of (opencv) rectangles for each area detected. Each rectangle is defined by a tuple containing:
+      * a tuple with the coordinates of the rectangle's center
+      * a tuple with the width anf height of the rectangle
+      * the angle of the rectangle
+    :rtype: list[tuple[tuple[int, int], tuple[int, int], float]]
+    """
+    if len(image.shape) > 2:
+        # Assume BGR image
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    return detect_barcodes_cv2_gray(image, quiet_dist=quiet_dist, min_area=min_area, fast=fast)
+
+
+def detect_barcodes_cv2_gray(image, quiet_dist=10, min_area=12000, fast=True):
+    """
+    Detect areas on given image which may contain a barcode.
+
+    :param numpy.ndarray image: the (opencv) gray image to analyze
+    :param int quiet_dist: the quiet distance in pixels (i.e. blank zone around barcodes)
+    :param int min_area: the min area in pixels x pixels a barcode must have
+    :param bool fast: if ``True``, make the detection faster. This will make the contours coordinates less accurate
+      (a little larger than real contours). If ``False``, contours coordinates are more accurate.
     :return: a list of (opencv) rectangles for each area detected. Each rectangle is defined by a tuple containing:
       * a tuple with the coordinates of the rectangle's center
       * a tuple with the width anf height of the rectangle
@@ -86,6 +129,28 @@ def detect_barcodes(image, quiet_dist=10, min_area=12000):
     """
     return [
         cv2.minAreaRect(contour) for contour in itertools.chain.from_iterable(
-            merge_contours(contours, quiet_dist) for contours in get_groups_of_contours(image)
+            merge_contours(contours, quiet_dist) for contours in get_groups_of_contours(image, fast=fast)
         ) if cv2.contourArea(contour) > min_area
     ]
+
+
+def detect_barcodes(image, quiet_dist=10, min_area=12000, fast=True):
+    """
+    Detect areas on given image which may contain a barcode.
+
+    :param image: the (pillow or opencv) image to crop
+    :type image: Union[PIL.Image.Image,numpy.ndarray]
+    :param int quiet_dist: the quiet distance in pixels (i.e. blank zone around barcodes)
+    :param int min_area: the min area in pixels x pixels a barcode must have
+    :param bool fast: if ``True``, make the detection faster. This will make the contours coordinates less accurate
+      (a little larger than real contours). If ``False``, contours coordinates are more accurate.
+    :return: a list of (opencv) rectangles for each area detected. Each rectangle is defined by a tuple containing:
+      * a tuple with the coordinates of the rectangle's center
+      * a tuple with the width anf height of the rectangle
+      * the angle of the rectangle
+    :rtype: list[tuple[tuple[int, int], tuple[int, int], float]]
+    """
+    if isinstance(image, Image.Image):
+        return detect_barcodes_pil(image, quiet_dist=quiet_dist, min_area=min_area, fast=fast)
+    else:
+        return detect_barcodes_cv2(image, quiet_dist=quiet_dist, min_area=min_area, fast=fast)

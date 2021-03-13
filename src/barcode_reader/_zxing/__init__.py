@@ -7,10 +7,10 @@ import cv2
 # noinspection PyPackageRequirements
 import jpype
 import numpy as np
-from imforge.crop import crop
+from imforge.crop import crop_cv2
 from pkg_resources import resource_filename
 
-from barcode_reader.utils import detect_barcodes
+from barcode_reader.utils import detect_barcodes_cv2_gray
 
 Point = namedtuple("Point", ["x", "y"])
 Rect = namedtuple('Rect', ['left', 'top', 'width', 'height'])
@@ -70,22 +70,19 @@ class ZxingDecoder:
         Decode barcodes of given image (must be in L mode). This function is intended for execution in child process.
         The Zxing JVM must have been started with the _start_zxing_jvm function before calling this function.
 
-        :param PIL.Image.Image image: the image (in L mode) to decode
+        :param numpy.ndarray image: the (opencv) gray image to decode
         :param int quiet_dist: the quiet distance in pixels (i.e. blank zone around barcodes)
         :param int min_area: the min area in pixels x pixels a barcode must have
         :return: the list of decoding results
         :rtype: list[barcode_reader._zxing.Decoded]
         """
-        image = image.convert("L")
-        im = np.array(image)
-        bitmap = self.get_binary_bitmap(im)
+        bitmap = self.get_binary_bitmap(image)
         results = self.decode_qr(bitmap)
         results.extend(self.decode_pdf417(bitmap))
         for result in results:
-            cv2.fillConvexPoly(im, np.int0(result.result_points), color=255)
-        image.frombytes(im)
+            cv2.fillConvexPoly(image, np.int0(result.result_points), color=255)
         all_points = [pt for result in results for pt in result.result_points]
-        for center, (width, height), angle in detect_barcodes(image, quiet_dist, min_area):
+        for center, (width, height), angle in detect_barcodes_cv2_gray(image, quiet_dist, min_area):
             rectangle = deque(
                 (round(p[0]), round(p[1]))
                 for p in cv2.boxPoints((center, (width + 2 * quiet_dist, height + 2 * quiet_dist), angle))
@@ -111,8 +108,8 @@ class ZxingDecoder:
             top_left = rectangle[0]
             mat[0][2] = top_left[0]
             mat[1][2] = top_left[1]
-            im = np.array(crop(image, rectangle, fillcolor=255))
-            for zxing_result in self.decode_other(self.get_binary_bitmap(im)):
+            im_crop = crop_cv2(image, rectangle, fillcolor=255)
+            for zxing_result in self.decode_other(self.get_binary_bitmap(im_crop)):
                 results.append(
                     _ZxingResult(
                         data=zxing_result.data,
@@ -261,4 +258,4 @@ def decode(image):
     :return: list of found barcodes
     :rtype: list[barcode_reader._zxing.Decoded]
     """
-    return _executors.submit(_decode, image).result()
+    return _executors.submit(_decode, np.array(image.convert("L"))).result()
